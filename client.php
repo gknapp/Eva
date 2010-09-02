@@ -2,10 +2,7 @@
 
 class ircClient {
 
-	public $channels = array();
-
 	protected $_connection;
-	protected $_nickname;
 	protected $_config;
 
 	public function connect($config) {
@@ -87,12 +84,6 @@ class ircClient {
 	
 	}
 	
-	protected function _isMotd($response) {
-	
-		return (strpos($response, ' 376 ') !== false);
-	
-	}
-
 	protected function _login($config) {
 	
 		if ($this->_connection->connected()) {
