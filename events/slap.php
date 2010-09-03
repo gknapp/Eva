@@ -10,9 +10,9 @@ class EventSlap extends EventBase {
 
 	public function respondsTo($response) {
 	
-		// PRIVMSG #gravediggas :!slap eva
+		// PRIVMSG #channel :!slap eva
 		$result = preg_match(
-			'/PRIVMSG #([^\s]+) :!slap\s(\w+)/',
+			'/PRIVMSG #([^\s]+) :!slap\s(\w+)/i',
 			$response,
 			$matches
 		);
