@@ -25,7 +25,7 @@ class EventSlap extends EventBase {
 	
 	}
 	
-	public function run($client, $config) {
+	public function run($client) {
 	
 		$client->action(
 			"slaps {$this->_target} around with a cricket bat",

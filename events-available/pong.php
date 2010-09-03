@@ -13,7 +13,7 @@ class EventPong extends EventBase {
 	
 	}
 	
-	public function run($client, $config) {
+	public function run($client) {
 	
 		$client->raw('PONG :' . substr($this->_response, 6));
 	

@@ -1,22 +1,33 @@
 <?php
 
-require("connection.php");
-require("client.php");
-require("bot.php");
-
-require("events/base.php");
-require("events/pong.php");
-require("events/identify.php");
-require("events/join.php");
-require("events/slap.php");
-
-require("config.php");
-
 // so the bot don't stop
 set_time_limit(0);
 
-$bot = new ircBot(new ircClient);
-$bot->addListener(new EventIdentify);
-$bot->addListener(new EventJoin);
-$bot->addListener(new EventSlap);
-$bot->run($config);
+function __autoload($className) {
+
+	$file = strtolower($className);
+
+	if (substr($className, 0, 5) == 'Event') {
+		$file = 'events-available/' . substr(strtolower($className), 5);
+	} else if (substr($className, 0, 3) == 'irc') {
+		$file = substr(strtolower($className), 3);
+	}
+	
+	$file .= '.php';
+	
+	if (file_exists($file)) {
+		require($file);
+	} else {
+		trigger_error(
+			"Cannot load class '$className', expected class file " . 
+			"does not exist: $file"
+		);
+	}
+
+}
+
+require("config.php");
+
+$eva = new ircBot(new ircClient, $config);
+$eva->loadEvents('events-enabled/');
+$eva->run();

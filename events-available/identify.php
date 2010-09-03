@@ -24,9 +24,9 @@ class EventIdentify extends EventBase {
 	
 	}
 	
-	public function run($client, $config) {
+	public function run($client) {
 	
-		$client->raw("PRIVMSG {$this->_target} IDENTIFY {$config['nickpswd']}");
+		$client->raw("PRIVMSG {$this->_target} IDENTIFY {$this->_cfg['nickpswd']}");
 	
 	}
 
