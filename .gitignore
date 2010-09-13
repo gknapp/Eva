@@ -1,4 +1,5 @@
 .gitignore
 config.php
+events-enabled/
 events-available/torn/
 events-enabled/torn*
