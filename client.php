@@ -59,22 +59,15 @@ class ircClient {
 	
 	}
 
-	public function say($msg, $channel) {
+	public function say($msg, $target) {
 	
-		$channel = $this->_prefixChannel($channel);
-		$this->raw("PRIVMSG $channel $msg");
-	
-	}
-	
-	public function action($msg, $channel) {
-	
-		$this->say(chr(1) . "ACTION $msg ", $this->_prefixChannel($channel));
+		$this->raw("PRIVMSG $target $msg");
 	
 	}
 	
-	public function oper() {
+	public function action($msg, $target) {
 	
-		$this->raw("OPER {$this->_config['nickname']} {$this->_config['password']}");
+		$this->say(chr(1) . "ACTION $msg ", $target);
 	
 	}
 	
@@ -86,18 +79,31 @@ class ircClient {
 	
 	protected function _login($config) {
 	
-		if ($this->_connection->connected()) {
-			if (array_key_exists('password', $config)) {
-				$this->_connection->send("PASS {$config['password']}");
+		$this->_config = $config;
+	
+		while ($this->_connection->connected()) {
+			$line = $this->_connection->readLine();
+			
+			if (strpos($line, ' NOTICE AUTH ') !== false &&
+				strpos($line, 'Found your hostname') !== false) {
+				if (array_key_exists('password', $config)) {
+					$this->_connection->send("PASS {$config['password']}");
+				}
+				
+				$this->setNickname($config['nickname']);
+				$this->_auth($config);
+				break;
 			}
-			
-			$this->setNickname($config['nickname']);
-			$this->raw(
-				"USER {$config['nickname']} {$config['hostname']} {$config['nickname']} :{$config['nickname']}"
-			);
-			
-			$this->_config = $config;
 		}
+	
+	}
+	
+	protected function _auth($config) {
+	
+		$this->raw(
+			"USER {$config['nickname']} {$config['hostname']} " .
+			"{$config['nickname']} :{$config['nickname']}"
+		);
 	
 	}
 	

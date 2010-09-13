@@ -1,16 +1,25 @@
 <?php
 
-abstract class EventBase {
+abstract class Event_Base {
 
-	protected $_cfg; // config
-
-	abstract public function respondsTo($response);
-	abstract public function run($client);
+	protected $_bot; // config
 	
-	public function setConfig($config) {
+	public function __construct($bot) {
 	
-		$this->_cfg = $config;
+		$this->_bot = $bot;
+	
+	}
+	
+	/**
+	 * Method to check event listeners requirements
+	 */
+	public function satisfied() {
+	
+		return true;
 	
 	}
 
+	abstract public function respondsTo($response);
+	abstract public function run();
+	
 }

@@ -1,10 +1,10 @@
 <?php
 
 // identify with NickServ:
-// This nickname is registered and protected.  If it is your
-// please choose a different nick
+// "This nickname is registered and protected.  If it is your \
+// please choose a different nick"
 
-class EventIdentify extends EventBase {
+class Event_Identify extends Event_Base {
 
 	protected $_target;
 
@@ -24,9 +24,12 @@ class EventIdentify extends EventBase {
 	
 	}
 	
-	public function run($client) {
+	public function run() {
 	
-		$client->raw("PRIVMSG {$this->_target} IDENTIFY {$this->_cfg['nickpswd']}");
+		$cfg = $this->_bot->cfg;
+		$this->_bot->client->raw(
+			"PRIVMSG {$this->_target} IDENTIFY {$cfg['nickpswd']}"
+		);
 	
 	}
 

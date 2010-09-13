@@ -7,12 +7,12 @@ class ircConnection {
 	
 	public function connect($config) {
 	
-		$conn = fsockopen(
+		$conn = @fsockopen(
 			$config['server'], $config['port'], $err, $errStr, $this->timeout
 		);
 		
 		if (!$conn) {
-			die("Connection failed to {$config['server']}:{$config['port']} (" . $errStr . ")");
+			die("Connection failed to {$config['server']}:{$config['port']} (" . $errStr . ")\n");
 		}
 		
 		$this->_conn = $conn;

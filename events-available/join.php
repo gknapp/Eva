@@ -2,7 +2,7 @@
 
 // Join channels in $config['channels']
 
-class EventJoin extends EventBase {
+class Event_Join extends Event_Base {
 
 	public function respondsTo($response) {
 	
@@ -11,10 +11,10 @@ class EventJoin extends EventBase {
 	
 	}
 	
-	public function run($client) {
+	public function run() {
 	
-		foreach ($this->_cfg['channels'] as $channel) {
-			$client->join($channel);
+		foreach ($this->_bot->cfg['channels'] as $channel) {
+			$this->_bot->client->join($channel);
 		}
 	
 	}

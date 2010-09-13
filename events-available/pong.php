@@ -2,7 +2,7 @@
 
 // send PONG! to PING? request or get disconnected
 
-class EventPong extends EventBase {
+class Event_Pong extends Event_Base {
 
 	protected $_response;
 
@@ -13,9 +13,9 @@ class EventPong extends EventBase {
 	
 	}
 	
-	public function run($client) {
+	public function run() {
 	
-		$client->raw('PONG :' . substr($this->_response, 6));
+		$this->_bot->client->raw('PONG :' . substr($this->_response, 6));
 	
 	}
 

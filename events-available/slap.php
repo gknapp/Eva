@@ -3,7 +3,7 @@
 // slaps someone in #channel
 // !slap nick
 
-class EventSlap extends EventBase {
+class Event_Slap extends Event_Base {
 
 	protected $_channel;
 	protected $_target;
@@ -25,9 +25,9 @@ class EventSlap extends EventBase {
 	
 	}
 	
-	public function run($client) {
+	public function run() {
 	
-		$client->action(
+		$this->bot->client->action(
 			"slaps {$this->_target} around with a cricket bat",
 			$this->_channel
 		);

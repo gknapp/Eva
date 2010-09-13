@@ -1,39 +1,121 @@
 <?php
 
+class EventLoadException extends Exception {
+	public $target; // nickname to direct error msg
+}
+
 class ircBot {
 
+	public $client;
+	public $storage;
+	public $cfg;
+	public $log;
+	
 	protected $_listeners = array();
-	protected $_client;
-	protected $_cfg;
 
 	public function __construct(ircClient $client, $config) {
 	
-		$this->_client = $client;
-		$this->_cfg = $config;
+		$this->client = $client;
+		$this->cfg = $config;
 		
 	}
 	
-	// Add event listener
-	public function addListener(EventBase $listener) {
+	public function isListenerLoaded($listener) {
 	
-		$listener->setConfig($this->_cfg);
-		$this->_listeners[] = $listener;
+		foreach ($this->_listeners as $event) {
+			if ($listener instanceof $event) {
+				return true;
+			}
+		}
+		
+		return false;
+	
+	}
+	
+	public function addListener($listener) {
+	
+		$result = false;
+	
+		try {
+			if (!$this->isListenerLoaded($listener)) {
+				$this->_listeners[] = new $listener($this);
+				$result = true;
+			}
+		} catch (EventLoadException $e) {
+			$target = empty($e->target) ? $this->cfg['botadmin'] : $e->target;
+			$this->client->say($e->getMessage(), $target);
+			// $this->log->append($e->getMessage() . " ({$e->target})");
+		}
+		
+		return $result;
+	
+	}
+	
+	public function removeListener($listener) {
+	
+		foreach ($this->_listeners as $i => $event) {
+			if (strtolower(get_class($event)) == strtolower($listener)) {
+				unset($this->_listeners[$i]);
+				return true;
+			}
+		}
+		
+		return false;
 	
 	}
 
-	public function loadEvents($path) {
+	public static function getClassFromPathname($pathname) {
+	
+		$pathname = substr($pathname, strlen(dirname($pathname))+1, -4);
+		
+		// strip load ordering from symlink filename
+		// e.g. 1-pong => pong
+		if (preg_match("/^(\d+-)?(.+)/", $pathname, $match)) {
+			$pathname = $match[2];
+		}
+		
+		$class = join('_', array_map(function ($elem) {
+				return ucfirst($elem);
+			}, explode(DIRECTORY_SEPARATOR, $pathname))
+		);
+	
+		return 'Event_' . $class;
+	
+	}
+	
+	public function run($eventDir = 'events-enabled/') {
+	
+		$this->client->connect($this->cfg);
+		$this->_loadEvents($eventDir);
+	
+		while ($this->client->connected()) {
+			$response = $this->client->readLine();
+			// echo $response; // debug
+			
+			foreach ($this->_listeners as $event) {
+				if ($event->respondsTo($response)) {
+					$event->run();
+				}
+			}
+		}
+	
+	}
 
-		$required = array('EventPong', 'EventJoin');
+	protected function _loadEvents($path) {
+
+		$required = array('Event_Pong', 'Event_Join');
 		$loaded = 0;
 
-		foreach (glob($path . "*.php") as $event) {
-			$eventClass = 'Event' . ucfirst(substr(basename($event), 0, -4));
-			
-			// register event listener
-			$event = new $eventClass;
+		$files = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator($path),
+			RecursiveIteratorIterator :: SELF_FIRST
+		);
+		
+		foreach ($this->_orderPaths($files) as $pathName) {
+			$event = self :: getClassFromPathname($pathName);
 			$this->addListener($event);
 			
-			if (in_array($eventClass, $required)) {
+			if (in_array($event, $required)) {
 				$loaded++;
 			}
 		}
@@ -46,27 +128,31 @@ class ircBot {
 		}
 	
 	}
+
+	/**
+	 * order by filenames numerically to respect
+	 * load order of symlinked events
+	 */
+	protected function _orderPaths($files) {
 	
-	protected function _onTick($response) {
-	
-		foreach ($this->_listeners as $event) {
-			if ($event->respondsTo($response)) {
-				$event->run($this->_client);
+		$events = array();
+		$pattern = '|' . DIRECTORY_SEPARATOR . '(\d+-)?.+|';
+		
+		foreach ($files as $file) {
+			$filePath = $file->getPathName();
+			
+			if (preg_match($pattern, $filePath, $match)) {
+				if (!empty($match[1])) {
+					$events[intval($match[1])] = $filePath;
+				} else {
+					$events[] = $filePath;
+				}
 			}
 		}
+		
+		ksort($events, SORT_NUMERIC);
+		return $events;
 	
 	}
 	
-	public function run() {
-	
-		$this->_client->connect($this->_cfg);
-	
-		while ($this->_client->connected()) {
-			$response = $this->_client->readLine();
-			echo $response; // debug			
-			$this->_onTick($response);
-		}
-	
-	}
-
 }

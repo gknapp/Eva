@@ -1,0 +1,36 @@
+#!/usr/bin/php
+<?php
+
+// so the bot don't stop
+set_time_limit(0);
+
+function __autoload($className) {
+
+	$sep = DIRECTORY_SEPARATOR;
+
+	// Replace _ with / to load classes from sub-directories
+	$file = str_replace(
+		'_', $sep, strtolower($className) . '.php'
+	);
+
+	// load events from events-available directory
+	if (preg_match("|^event" . $sep . "(\d+-)?(.+)|", $file, $match)) {
+		$file = 'events-available' . $sep . $match[2];
+	} else if (substr($className, 0, 3) == 'irc') {
+		// strip 'irc' from filename
+		$file = substr($file, 3);
+	}
+	
+	if (file_exists($file)) {
+		require($file);
+	} else {
+		die("Cannot load class '$className', file does not exist: $file\n");
+	}
+
+}
+
+require("config.php");
+
+$eva = new ircBot(new ircClient, $config);
+$eva->storage = new fileStore('memory/');
+$eva->run();
