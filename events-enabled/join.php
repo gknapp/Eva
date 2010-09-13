@@ -1,1 +1,0 @@
-../events-available/join.php
