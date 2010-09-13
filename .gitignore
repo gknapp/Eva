@@ -1,3 +1,4 @@
 .gitignore
 config.php
-events/motd.php
+events-available/torn/
+events-enabled/torn*
