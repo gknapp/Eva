@@ -61,7 +61,13 @@ class ircClient {
 
 	public function say($msg, $target) {
 	
-		$this->raw("PRIVMSG $target $msg");
+		$this->raw("PRIVMSG $target :$msg");
+	
+	}
+	
+	public function notice($msg, $target) {
+	
+		$this->raw("NOTICE $target :$msg");
 	
 	}
 	
