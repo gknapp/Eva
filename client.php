@@ -1,6 +1,6 @@
 <?php
 
-class ircClient {
+class IrcClient {
 
 	protected $_connection;
 	protected $_config;

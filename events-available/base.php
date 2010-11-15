@@ -2,7 +2,8 @@
 
 abstract class Event_Base {
 
-	protected $_bot; // config
+	protected $_bot;
+	protected $_response;
 	
 	public function __construct($bot) {
 	
@@ -11,7 +12,7 @@ abstract class Event_Base {
 	}
 	
 	/**
-	 * Method to check event listeners requirements
+	 * Method to check event listeners requirements are met
 	 */
 	public function satisfied() {
 	

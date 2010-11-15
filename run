@@ -16,13 +16,17 @@ function __autoload($className) {
 	// load events from events-available directory
 	if (preg_match("|^event" . $sep . "(\d+-)?(.+)|", $file, $match)) {
 		$file = 'events-available' . $sep . $match[2];
-	} else if (substr($className, 0, 3) == 'irc') {
+	} else if (substr(strtolower($className), 0, 3) == 'irc') {
 		// strip 'irc' from filename
 		$file = substr($file, 3);
 	}
 	
 	if (file_exists($file)) {
 		require($file);
+		
+		if (!class_exists($className)) {
+			die("Loaded file $file but $className not found within.");
+		}
 	} else {
 		die("Cannot load class '$className', file does not exist: $file\n");
 	}
@@ -31,6 +35,6 @@ function __autoload($className) {
 
 require("config.php");
 
-$eva = new ircBot(new ircClient, $config);
+$eva = new Eva(new IrcClient, $config);
 $eva->storage = new fileStore('memory/');
 $eva->run();

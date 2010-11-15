@@ -4,7 +4,7 @@ class EventLoadException extends Exception {
 	public $target; // nickname to direct error msg
 }
 
-class ircBot {
+class Drone {
 
 	public $client;
 	public $storage;
@@ -18,6 +18,16 @@ class ircBot {
 		$this->client = $client;
 		$this->cfg = $config;
 		
+	}
+	
+	/**
+	 * Prep the receiver class with the input line
+	 * return instance of receiver
+	 */
+	public function receives($event) {
+	
+		return new Receiver($this, $event);
+	
 	}
 	
 	public function isListenerLoaded($listener) {
@@ -90,7 +100,7 @@ class ircBot {
 	
 		while ($this->client->connected()) {
 			$response = $this->client->readLine();
-			// echo $response; // debug
+			echo $response; // debug
 			
 			foreach ($this->_listeners as $event) {
 				if ($event->respondsTo($response)) {
@@ -98,6 +108,15 @@ class ircBot {
 				}
 			}
 		}
+	
+	}
+	
+	/**
+	 * Events should be polled no tick (timed events)
+	 */
+	public function watch(Event_Interval $event) {
+	
+		$this->_scheduled[] = $event;
 	
 	}
 

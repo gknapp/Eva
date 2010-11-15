@@ -5,31 +5,31 @@
 
 class Event_Slap extends Event_Base {
 
-	protected $_channel;
-	protected $_target;
-
-	public function respondsTo($response) {
+	/**
+	 * Do I respond to this event?
+	 */
+	public function respondsTo($event) {
 	
-		// PRIVMSG #channel :!slap eva
-		$result = preg_match(
-			'/PRIVMSG #([^\s]+) :!slap\s(\w+)/i',
-			$response,
-			$matches
-		);
+		// !slap Fred
+		$this->_response = $this->_bot
+								->receives($event)
+								->inChannel()
+								->match("!slap (\w+)");
 		
-		if ($result) {
-			list(, $this->_channel, $this->_target) = $matches;
-		}
-		
-		return $result;
+		return $this->_response;
 	
 	}
 	
+	/**
+	 * Perform action in response to event
+	 */
 	public function run() {
 	
-		$this->bot->client->action(
-			"slaps {$this->_target} around with a cricket bat",
-			$this->_channel
+		$nickname = $this->_response->nick;
+	
+		$this->_bot->action(
+			"slaps $nickname around with a frying pan",
+			$this->_response->target
 		);
 	
 	}
