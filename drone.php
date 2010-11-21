@@ -8,10 +8,12 @@ class Drone {
 
 	public $client;
 	public $storage;
+	
 	public $cfg;
 	public $log;
 	
 	protected $_listeners = array();
+	protected $_scheduled = array();
 
 	public function __construct(ircClient $client, $config) {
 	
@@ -27,6 +29,15 @@ class Drone {
 	public function receives($event) {
 	
 		return new Receiver($this, $event);
+	
+	}
+	
+	/**
+	 * Issue a response at a given time
+	 */
+	public function at($time) {
+	
+		return $this->_scheduleAction($time);
 	
 	}
 	
@@ -107,19 +118,32 @@ class Drone {
 					$event->run();
 				}
 			}
+			
+			foreach ($this->_scheduled as $i => $action) {
+				if ($action->runNow()) {
+					$action->run($this);
+					$this->_removeAction($i);
+				}
+			}
 		}
 	
 	}
 	
-	/**
-	 * Events should be polled no tick (timed events)
-	 */
-	public function watch(Event_Interval $event) {
+	protected function _scheduleAction($time) {
 	
-		$this->_scheduled[] = $event;
+		$action = new ScheduledAction($time);
+		$this->_scheduled[] = $action;
+		
+		return $action;
 	
 	}
-
+	
+	protected function _removeAction($idx) {
+	
+		unset($this->_scheduled[$idx]);
+	
+	}
+	
 	protected function _loadEvents($path) {
 
 		$required = array('Event_Pong', 'Event_Join');
@@ -171,6 +195,60 @@ class Drone {
 		
 		ksort($events, SORT_NUMERIC);
 		return $events;
+	
+	}
+	
+}
+
+class ScheduledAction {
+
+	protected $_time;
+	protected $_call;
+
+	public function __construct($time) {
+	
+		$this->_time = $time;
+	
+	}
+	
+	public function runNow() {
+	
+		$result = false;
+	
+		if ($this->_time == date('H:i')) {
+			$result = true;
+		}
+		
+		return $result;
+	
+	}
+	
+	public function say($msg, $target) {
+	
+		$this->_call[] = array(
+			'name' => 'say',
+			'args' => array($msg, $target)
+		);
+	
+	}
+	
+	public function privateMessage($msg, $target) {
+	
+		$this->_call[] = array(
+			'name' => 'privateMessage',
+			'args' => array($msg, $target)
+		);	
+	
+	}
+	
+	public function run($bot) {
+	
+		$ref = new ReflectionClass(get_class($bot));
+		
+		foreach ($this->_call as $meth) {
+			$method = $ref->getMethod($meth['name']);
+			$method->invokeArgs($bot, $meth['args']);
+		}
 	
 	}
 	
