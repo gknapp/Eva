@@ -7,7 +7,7 @@ class IrcClient {
 
 	public function connect($config) {
 	
-		$this->_connection = new ircConnection;
+		$this->_connection = new IrcConnection;
 		
 		if (!$this->_connection->connect($config)) {
 			die("Failed to connect.\n");
@@ -74,6 +74,12 @@ class IrcClient {
 	public function action($msg, $target) {
 	
 		$this->say(chr(1) . "ACTION $msg ", $target);
+	
+	}
+	
+	public function names($channel) {
+	
+		$this->raw("NAMES $channel");
 	
 	}
 	

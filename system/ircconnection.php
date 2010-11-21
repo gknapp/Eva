@@ -1,6 +1,6 @@
 <?php
 
-class ircConnection {
+class IrcConnection {
 
 	public $timeout = 5; // 5 second connection timeout
 	protected $_conn; // connection handle

@@ -14,11 +14,20 @@ function __autoload($className) {
 	);
 
 	// load events from events-available directory
-	if (preg_match("|^event" . $sep . "(\d+-)?(.+)|", $file, $match)) {
-		$file = 'events-available' . $sep . $match[2];
-	} else if (substr(strtolower($className), 0, 3) == 'irc') {
-		// strip 'irc' from filename
-		$file = substr($file, 3);
+	// load plugins from plugins directory
+	// default is to load files from system dir
+	$paths = array(
+		// 20-slap.php: match[1] = slap.php
+		'events-available' => '^event' . $sep . "[\d+-]?(.+)",
+		'plugins' => '^plugin' . $sep . "(.+)",
+		'system' => '(.*)'
+	);
+
+	foreach ($paths as $directory => $pattern) {
+		if (preg_match("|$pattern|", $file, $match)) {
+			$file = $directory . $sep . array_pop($match);
+			break;
+		}
 	}
 	
 	if (file_exists($file)) {
@@ -35,6 +44,5 @@ function __autoload($className) {
 
 require("config.php");
 
-$eva = new Eva(new IrcClient, $config);
-$eva->storage = new fileStore('memory/');
+$eva = new Eva($config);
 $eva->run();

@@ -15,9 +15,10 @@ class Drone {
 	protected $_listeners = array();
 	protected $_scheduled = array();
 
-	public function __construct(ircClient $client, $config) {
+	public function __construct($config) {
 	
-		$this->client = $client;
+		$this->client = new IrcClient;
+		$this->storage = new fileStore('memory/');
 		$this->cfg = $config;
 		
 	}
