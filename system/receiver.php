@@ -10,12 +10,24 @@ class Receiver {
 
 	protected $_bot;
 	protected $_input;
-	protected $_channel;
+	protected $_regex;
 
 	public function __construct($bot, $input) {
 	
 		$this->_bot = $bot;
 		$this->_input = $input;
+		
+		$this->_regex = array(
+			'nick'   =>'([^!]+)',
+			'!',
+			'user'   =>'([^@]+)',
+			'@',
+			'host'   =>'([^\s]+)',
+			' ',
+			'command'=>'([A-Z]+)',
+			' ',
+			'target' =>'([^\s]+)',
+		);
 	
 	}
 
@@ -30,33 +42,8 @@ class Receiver {
 	public function match($pattern, $insensitive = true) {
 	
 		$event = false;
-		
-		$regex = array(
-			'nick'   =>'([^!]+)',
-			'!',
-			'user'   =>'([^@]+)',
-			'@',
-			'host'   =>'([^\s]+)',
-			' ',
-			'command'=>'([A-Z]+)',
-			' ',
-			'target' =>'([^\s]+)',
-		);
-		
-		// must receive the message in a channel?
-		if (!empty($this->_channel)) {
-			$regex['command'] = '(PRIVMSG)';
-			
-			if ($this->_channel == '*') { // any channel	
-				$regex['target'] = '(#[^\s]+)';
-			} else { // specific channel
-				$regex['target'] = '(' . $this->_channel . ')';
-			}
-		}
-		
-		$pattern = ':' . join('', $regex) . ' :' . $pattern;
+		$pattern = ':' . join('', $this->_regex) . ' :' . $pattern;
 		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
-		echo $pattern . "\n";
 		
 		if (preg_match($pattern, $this->_input, $matches)) {
 			$event = new Event($matches);
@@ -93,12 +80,14 @@ class Receiver {
 	 * Filter out events not received in a channel, by default accept events 
 	 * on any channel unless a channel is specified
 	 */
-	public function inChannel($channel = '') {
+	public function inChannel($channel = '*') {
 		
-		$this->_channel = '*';
-		
-		if (!empty($channel)) {
-			$this->_channel = $channel;	
+		$this->_regex['command'] = '(PRIVMSG)';
+			
+		if (empty($channel) || $channel == '*') { // any channel	
+			$this->_regex['target'] = '(#[^\s]+)';
+		} else { // specific channel
+			$this->_regex['target'] = '(' . $channel . ')';
 		}
 		
 		return $this;
@@ -140,10 +129,8 @@ class Event {
 		
 		// stuff any remaining captures into matches attribute
 		if (count($matches) > 5) {
-			$matches = array_slice($matches, 5);
-			
-			while (count($matches)) {
-				$this->matches[] = array_shift($matches);
+			foreach (array_slice($matches, 5) as $match) {
+				$this->matches[] = trim($match);
 			}
 		}
 	
