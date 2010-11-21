@@ -1,34 +1,26 @@
 <?php
 
 // identify with NickServ:
-// "This nickname is registered and protected.  If it is your \
-// please choose a different nick"
+// "This nickname is registered and protected. If it is your please choose 
+//  a different nick"
 
 class Event_Identify extends Event_Base {
 
-	protected $_target;
-
-	public function respondsTo($response) {
+	public function respondsTo($event) {
 	
-		$result = preg_match(
-			'/:([^!]+)![^\s]+\sNOTICE\s\w+\s\:please choose a different nick/',
-			$response,
-			$target
+		$this->response = $this->bot->receives($event)->match(
+			'This nickname is registered and protected'
 		);
 		
-		if ($result) {
-			$this->_target = array_pop($target);
-		}
-		
-		return $result;
+		return $this->response;
 	
 	}
 	
 	public function run() {
-	
-		$cfg = $this->_bot->cfg;
-		$this->_bot->client->raw(
-			"PRIVMSG {$this->_target} IDENTIFY {$cfg['nickpswd']}"
+		
+		$this->bot->privateMessage(
+			'IDENTIFY ' . $this->bot->cfg['nickpswd'],
+			$this->response->nick
 		);
 	
 	}

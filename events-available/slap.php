@@ -1,7 +1,9 @@
 <?php
 
-// slaps someone in #channel
+// Get the bot to slap someone in a #channel
 // !slap nick
+// Slap them with a trout
+// !slap nick trout
 
 class Event_Slap extends Event_Base {
 
@@ -10,13 +12,10 @@ class Event_Slap extends Event_Base {
 	 */
 	public function respondsTo($event) {
 	
-		// !slap Fred
-		$this->_response = $this->_bot
-								->receives($event)
-								->inChannel()
-								->match("!slap (\w+)");
+		$event = $this->bot->receives($event);
+		$this->response = $event->inChannel()->match("!slap (\w+)( .*)?");
 		
-		return $this->_response;
+		return $this->response;
 	
 	}
 	
@@ -25,11 +24,16 @@ class Event_Slap extends Event_Base {
 	 */
 	public function run() {
 	
-		$nickname = $this->_response->nick;
+		$nickname = $this->response->matches[1];
+		$item = 'frying pan';
+		
+		if (isset($this->response->matches[2])) {
+			$item = $this->response->matches[2];
+		}
 	
-		$this->_bot->action(
-			"slaps $nickname around with a frying pan",
-			$this->_response->target
+		$this->bot->action(
+			"slaps $nickname around with a $item",
+			$this->response->target
 		);
 	
 	}

@@ -2,12 +2,12 @@
 
 abstract class Event_Base {
 
-	protected $_bot;
-	protected $_response;
+	protected $bot;
+	protected $response;
 	
 	public function __construct($bot) {
 	
-		$this->_bot = $bot;
+		$this->bot = $bot;
 	
 	}
 	

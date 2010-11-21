@@ -4,18 +4,16 @@
 
 class Event_Pong extends Event_Base {
 
-	protected $_response;
-
-	public function respondsTo($response) {
+	public function respondsTo($event) {
 	
-		$this->_response = $response;
-		return (substr($response, 0, 6) == 'PING :');
+		$this->response = $event;
+		return (substr($event, 0, 6) == 'PING :');
 	
 	}
 	
 	public function run() {
 	
-		$this->_bot->client->raw('PONG :' . substr($this->_response, 6));
+		$this->bot->client->raw('PONG :' . substr($this->response, 6));
 	
 	}
 
