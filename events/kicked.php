@@ -22,7 +22,7 @@ class Event_Kicked extends Event_Base {
 		if (preg_match('/:([^!]+)!.+@([^\s+]) KICK ([^\s+]) ([^\s+])/', $response, $matches)) {
 			list(, $kicker, $kickerHost, $channel, $user) = $matches;
 			
-			if ($user == $this->bot->cfg['nickname']) {
+			if ($user == $this->bot->cfg['bot.nick']) {
 				$this->_active = true;
 				$this->_kicker = $kicker;
 				$this->_kickTime = time();

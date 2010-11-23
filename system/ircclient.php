@@ -5,15 +5,15 @@ class IrcClient {
 	protected $_connection;
 	protected $_config;
 
-	public function connect($config) {
+	public function connect($cfg) {
 	
 		$this->_connection = new IrcConnection;
 		
-		if (!$this->_connection->connect($config)) {
+		if (!$this->_connection->connect($cfg['server.host'], $cfg['server.port'])) {
 			die("Failed to connect.\n");
 		}
 		
-		$this->_login($config);
+		$this->_login($cfg);
 	
 	}
 	
@@ -99,10 +99,12 @@ class IrcClient {
 			if (strpos($line, ' NOTICE AUTH ') !== false &&
 				strpos($line, 'Found your hostname') !== false) {
 				if (array_key_exists('password', $config)) {
-					$this->_connection->send("PASS {$config['password']}");
+					$this->_connection->send(
+						"PASS {$config['nickserv.pswd']}"
+					);
 				}
 				
-				$this->setNickname($config['nickname']);
+				$this->setNickname($config['bot.nick']);
 				$this->_auth($config);
 				break;
 			}
@@ -113,8 +115,8 @@ class IrcClient {
 	protected function _auth($config) {
 	
 		$this->raw(
-			"USER {$config['nickname']} {$config['hostname']} " .
-			"{$config['nickname']} :{$config['nickname']}"
+			"USER {$config['bot.nick']} {$config['bot.host']} " .
+			"{$config['bot.nick']} :{$config['bot.nick']}"
 		);
 	
 	}

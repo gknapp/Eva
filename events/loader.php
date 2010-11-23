@@ -10,10 +10,10 @@ class Event_Loader extends Event_Base {
 
 	public function __construct($bot) {
 	
-		if (empty($bot->cfg['botpasswd'])) {
+		if (!$bot->getPassword()) {
 			$e = new EventLoadException(
-				__CLASS__ . ": Required password not specified in " .
-				"\$config['botpasswd']. Please add it and restart the bot."
+				__CLASS__ . ": Bot password not specified in config." .
+				"Please set 'bot.admin.pswd' and restart eva."
 			);
 			throw $e;
 		}
@@ -37,8 +37,9 @@ class Event_Loader extends Event_Base {
 		list(, $this->_nickname, $target, $this->_action,
 				$this->_event, $passwd) = $matches;
 		
-		if ($target == $this->_bot->cfg['nickname'] &&
-			$passwd == $this->_bot->cfg['botpasswd']) {
+		// if this msg is PM to the bot and password correct ...
+		if ($target == $this->_bot->getNick() &&
+			$passwd == $this->_bot->getPassword()) {
 			$result = true;
 		}
 		

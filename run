@@ -18,7 +18,7 @@ function __autoload($className) {
 	// default is to load files from system dir
 	$paths = array(
 		// 20-slap.php: match[1] = slap.php
-		'events-available' => '^event' . $sep . "[\d+-]?(.+)",
+		'events' => '^event' . $sep . "[\d+-]?(.+)",
 		'plugins' => '^plugin' . $sep . "(.+)",
 		'system' => '(.*)'
 	);
@@ -42,7 +42,5 @@ function __autoload($className) {
 
 }
 
-require("config.php");
-
-$eva = new Eva($config);
+$eva = new Eva('eva.cfg');
 $eva->run();

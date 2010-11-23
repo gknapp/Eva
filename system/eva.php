@@ -5,17 +5,11 @@
  */
  
 class Eva extends Drone {
-
-	public function getNick() {
-	
-		return $this->cfg['nickname'];
-	
-	}
 	
 	public function say($msg, $target) {
 	
-		if (!empty($this->cfg['textcolor'])) {
-			$c = $this->cfg['textcolor'];
+		if (!empty($this->cfg['bot.textcolor'])) {
+			$c = $this->cfg['bot.textcolor'];
 			$msg = "\x03" . $c . $msg . "\x03";
 		}
 	

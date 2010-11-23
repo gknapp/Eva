@@ -19,7 +19,7 @@ class Event_Identify extends Event_Base {
 	public function run() {
 		
 		$this->bot->privateMessage(
-			'IDENTIFY ' . $this->bot->cfg['nickpswd'],
+			'IDENTIFY ' . $this->bot->cfg['nickserv.pswd'],
 			$this->response->nick
 		);
 	

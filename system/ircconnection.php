@@ -5,14 +5,12 @@ class IrcConnection {
 	public $timeout = 5; // 5 second connection timeout
 	protected $_conn; // connection handle
 	
-	public function connect($config) {
+	public function connect($server, $port) {
 	
-		$conn = @fsockopen(
-			$config['server'], $config['port'], $err, $errStr, $this->timeout
-		);
+		$conn = @fsockopen($server, $port, $err, $errStr, $this->timeout);
 		
 		if (!$conn) {
-			die("Connection failed to {$config['server']}:{$config['port']} (" . $errStr . ")\n");
+			die("Connection failed to {$server}:{$port} (" . $errStr . ")\n");
 		}
 		
 		$this->_conn = $conn;

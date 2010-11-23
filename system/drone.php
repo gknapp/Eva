@@ -8,7 +8,6 @@ class Drone {
 
 	public $client;
 	public $storage;
-	
 	public $cfg;
 	public $log;
 	
@@ -18,9 +17,43 @@ class Drone {
 	public function __construct($config) {
 	
 		$this->client = new IrcClient;
-		$this->storage = new fileStore('memory/');
-		$this->cfg = $config;
+		$this->storage = new FileStore('memory/');
+		$this->cfg = $this->_parseConfig($config);
 		
+	}
+	
+	protected function _parseConfig($file) {
+	
+		$data = file($file);
+		$config = array('events' => array());
+		
+		foreach ($data as $line) {
+			// read config settings
+			if (preg_match("/^([a-z\.]+)\s?=\s?([#a-z0-9\.\-,+\!]+)/i", $line, $match)) {
+				list(, $option, $value) = $match;
+				$option = strtolower($option);
+				
+				// explode comma separated values
+				if (strpos($value, ',') !== false) {
+					$value = explode(',', $value);
+				}
+				
+				// server.channels is expected to be an array
+				if ($option == 'server.channels' && !is_array($value)) {
+					$value = explode(',', $value);
+				}
+				
+				$config[$option] = $value;
+			}
+			
+			// read events to load
+			if (preg_match("/^Event_[a-z0-9_]+/i", $line, $match)) {
+				$config['events'][] = trim(current($match));
+			}
+		}
+		
+		return $config;
+	
 	}
 	
 	/**
@@ -64,7 +97,7 @@ class Drone {
 				$result = true;
 			}
 		} catch (EventLoadException $e) {
-			$target = empty($e->target) ? $this->cfg['botadmin'] : $e->target;
+			$target = empty($e->target) ? $this->cfg['bot.admin'] : $e->target;
 			$this->client->say($e->getMessage(), $target);
 			// $this->log->append($e->getMessage() . " ({$e->target})");
 		}
@@ -85,41 +118,24 @@ class Drone {
 		return false;
 	
 	}
-
-	public static function getClassFromPathname($pathname) {
 	
-		$pathname = substr($pathname, strlen(dirname($pathname))+1, -4);
-		
-		// strip load ordering from symlink filename
-		// e.g. 1-pong => pong
-		if (preg_match("/^(\d+-)?(.+)/", $pathname, $match)) {
-			$pathname = $match[2];
-		}
-		
-		$class = join('_', array_map(function ($elem) {
-				return ucfirst($elem);
-			}, explode(DIRECTORY_SEPARATOR, $pathname))
-		);
-	
-		return 'Event_' . $class;
-	
-	}
-	
-	public function run($eventDir = 'events-enabled/') {
+	public function run() {
 	
 		$this->client->connect($this->cfg);
-		$this->_loadEvents($eventDir);
+		$this->_loadEvents();
 	
 		while ($this->client->connected()) {
-			$response = $this->client->readLine();
-			echo $response; // debug
+			$input = $this->client->readLine();
+			echo $input; // debug
 			
+			// run events that respond to this input
 			foreach ($this->_listeners as $event) {
-				if ($event->respondsTo($response)) {
+				if ($event->respondsTo($input)) {
 					$event->run();
 				}
 			}
 			
+			// run scheduled actions
 			foreach ($this->_scheduled as $i => $action) {
 				if ($action->runNow()) {
 					$action->run($this);
@@ -127,6 +143,24 @@ class Drone {
 				}
 			}
 		}
+	
+	}
+	
+	public function getNick() {
+	
+		return $this->cfg['bot.nick'];
+	
+	}
+
+	public function getPassword() {
+	
+		$pswd = false;
+		
+		if (!empty($this->cfg['bot.admin.pswd'])) {
+			$pswd = $this->cfg['bot.admin.pswd'];
+		}
+	
+		return $pswd;
 	
 	}
 	
@@ -145,18 +179,14 @@ class Drone {
 	
 	}
 	
-	protected function _loadEvents($path) {
+	protected function _loadEvents() {
 
+		// Always load these required events
 		$required = array('Event_Pong', 'Event_Join');
+		$events = array_merge($required, $this->cfg['events']);
 		$loaded = 0;
-
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($path),
-			RecursiveIteratorIterator :: SELF_FIRST
-		);
 		
-		foreach ($this->_orderPaths($files) as $pathName) {
-			$event = self :: getClassFromPathname($pathName);
+		foreach ($events as $event) {
 			$this->addListener($event);
 			
 			if (in_array($event, $required)) {
@@ -170,32 +200,6 @@ class Drone {
 				$loaded . "/" . count($required) . " loaded.\n"
 			);
 		}
-	
-	}
-
-	/**
-	 * order by filenames numerically to respect
-	 * load order of symlinked events
-	 */
-	protected function _orderPaths($files) {
-	
-		$events = array();
-		$pattern = '|' . DIRECTORY_SEPARATOR . '(\d+-)?.+|';
-		
-		foreach ($files as $file) {
-			$filePath = $file->getPathName();
-			
-			if (preg_match($pattern, $filePath, $match)) {
-				if (!empty($match[1])) {
-					$events[intval($match[1])] = $filePath;
-				} else {
-					$events[] = $filePath;
-				}
-			}
-		}
-		
-		ksort($events, SORT_NUMERIC);
-		return $events;
 	
 	}
 	

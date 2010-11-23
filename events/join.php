@@ -13,7 +13,7 @@ class Event_Join extends Event_Base {
 	
 	public function run() {
 	
-		foreach ($this->bot->cfg['channels'] as $channel) {
+		foreach ($this->bot->cfg['server.channels'] as $channel) {
 			$this->bot->join($channel);
 		}
 	
