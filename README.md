@@ -5,7 +5,7 @@ Event driven bot with:
  *  Plugin support  
     drop them in the `plugins` directory, must implement the `iPlugin` interface
 
- *  Apache style events system  
-    to load events `symlink` them in the `events-enabled` directory
+ *  Configurable events system  
+    Specify events to load, write your own events with the simple API!
 
 Documentation coming soon!
