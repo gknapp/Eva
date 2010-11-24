@@ -40,7 +40,7 @@ class Drone {
 				
 				// server.channels is expected to be an array
 				if ($option == 'server.channels' && !is_array($value)) {
-					$value = explode(',', $value);
+					$value = array($value);
 				}
 				
 				$config[$option] = $value;
@@ -195,10 +195,8 @@ class Drone {
 		}
 		
 		if ($loaded < count($required)) {
-			die(
-				"Failed to load required events: " .
-				$loaded . "/" . count($required) . " loaded.\n"
-			);
+			die("Failed to load required events: " .
+				$loaded . "/" . count($required) . " loaded.\n");
 		}
 	
 	}
