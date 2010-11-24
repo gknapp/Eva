@@ -13,12 +13,12 @@ function __autoload($className) {
 		'_', $sep, strtolower($className) . '.php'
 	);
 
-	// load events from events-available directory
-	// load plugins from plugins directory
-	// default is to load files from system dir
+	// load from corresponding directory
+	//   events => events dir
+	//   plugins => plugins dir
+	//   default => system dir
 	$paths = array(
-		// 20-slap.php: match[1] = slap.php
-		'events' => '^event' . $sep . "[\d+-]?(.+)",
+		'events' => '^event' . $sep . "(.+)",
 		'plugins' => '^plugin' . $sep . "(.+)",
 		'system' => '(.*)'
 	);
