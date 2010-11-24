@@ -11,8 +11,11 @@ server.port = 6667
 # Channels the bot should join on connection
 server.channel = #eva
 
-# NickServ password if bot nickname is registered
-nickserv.pswd = password
+# NickServ nick and password if bot nickname is registered
+# If NickServ or nick registration service has a different name specify here
+# Usually you will not have to change the nick from NickServ.
+ns.nick = NickServ
+ns.pswd = password
 
 # Bot nickname
 bot.nick = Eva

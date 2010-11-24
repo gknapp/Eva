@@ -32,6 +32,25 @@ class Receiver {
 	}
 
 	/**
+	 * Filters events to those from $nick
+	 */
+	public function from($nick) {
+		
+		$this->_regex['nick'] = "($nick)";
+		return $this;
+		
+	}
+
+	/**
+	 * Filters events to those from $hostname
+	 */	
+	public function fromHost($hostname) {
+	
+		$this->_regex['host'] = "($hostname)";
+	
+	}
+
+	/**
 	 * Match a response regardless of origin
 	 *
 	 * Example input:
@@ -70,10 +89,13 @@ class Receiver {
 	}
 	
 	/**
-	 * To be implemented
+	 * Filter events that are not notices
 	 */
 	public function asNotice() {
-	
+		
+		$this->_regex['command'] = '(NOTICE)';
+		return $this;
+		
 	}
 	
 	/**
