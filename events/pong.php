@@ -6,14 +6,13 @@ class Event_Pong extends Event_Base {
 
 	public function respondsTo($event) {
 	
-		$this->response = $event;
-		return (substr($event, 0, 6) == 'PING :');
+		return $this->bot->receives($event)->raw('PING :(.*)', false);
 	
 	}
 	
-	public function run() {
+	public function run($event) {
 	
-		$this->bot->client->raw('PONG :' . substr($this->response, 6));
+		$this->bot->client->raw('PONG :' . $event->matches[1]);
 	
 	}
 

@@ -16,15 +16,13 @@ class Event_Identify extends Event_Base {
 		$nickserv = $this->bot->cfg['ns.nick'];
 		$event = $this->bot->receives($event)->asNotice();
 		
-		$this->response = $event->from($nickserv)->match(
+		return $event->from($nickserv)->match(
 			'This nickname is registered and protected'
 		);
-		
-		return $this->response;
 	
 	}
 	
-	public function run() {
+	public function run($event) {
 		
 		$this->bot->privateMessage(
 			'IDENTIFY ' . $this->bot->cfg['ns.pswd'],

@@ -6,6 +6,31 @@
  
 class Eva extends Drone {
 	
+	public function getNick($lowercase = false) {
+	
+		$nick = trim($this->cfg['bot.nick']);
+		return ($lowercase ? strtolower($nick) : $nick);
+	
+	}
+
+	public function getPassword() {
+	
+		$pswd = false;
+		
+		if (!empty($this->cfg['bot.admin.pswd'])) {
+			$pswd = $this->cfg['bot.admin.pswd'];
+		}
+	
+		return $pswd;
+	
+	}
+	
+	public function getAdmins() {
+	
+		return $this->cfg['bot.admins'];
+	
+	}
+	
 	public function say($msg, $target) {
 	
 		if (!empty($this->cfg['bot.textcolor'])) {

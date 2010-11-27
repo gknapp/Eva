@@ -3,7 +3,6 @@
 abstract class Event_Base {
 
 	protected $bot;
-	protected $response;
 	
 	public function __construct($bot) {
 	
@@ -20,7 +19,7 @@ abstract class Event_Base {
 	
 	}
 
-	abstract public function respondsTo($response);
-	abstract public function run();
+	abstract public function respondsTo($event);
+	abstract public function run($event);
 	
 }

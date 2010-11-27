@@ -13,26 +13,25 @@ class Event_Slap extends Event_Base {
 	public function respondsTo($event) {
 	
 		$event = $this->bot->receives($event);
-		$this->response = $event->inChannel()->match("!slap (\w+)( .*)?");
-		
-		return $this->response;
+		return $event->inChannel()->match("!slap (\w+)( .*)?");
 	
 	}
 	
 	/**
 	 * Perform action in response to event
 	 */
-	public function run() {
+	public function run($event) {
 	
-		$nickname = $this->response->matches[1];
+		$nickname = $event->matches[1];
 		$item = 'frying pan';
 		
-		if (!empty($this->response->matches[2])) {
-			$item = $this->response->matches[2];
+		if (!empty($event->matches[2])) {
+			$item = $event->matches[2];
 			$prefix = 'a ';
 			
 			// small bit of analysis on the item
-			list($word, $rest) = explode(' ', strtolower($item), 2);
+			list($word, $rest) = explode(' ', $item, 2);
+			$word = strtolower($word);
 			
 			// strip 'a' prefix
 			if ($word == 'with' || $word == 'my' || $word = 'a') {
@@ -44,13 +43,12 @@ class Event_Slap extends Event_Base {
 			}
 			
 			// substitute 'my' with author's nick
-			$rest = str_replace('my', $this->response->nick . "'s", $rest);
+			$rest = str_replace('my ', $event->nick . "'s ", $rest);
 			$item = $prefix . $rest;
 		}
 		
 		$this->bot->action(
-			"slaps $nickname around with $item",
-			$this->response->target
+			"slaps $nickname around with $item", $event->target
 		);
 	
 	}
