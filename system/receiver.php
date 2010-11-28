@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Utility class to provide friendly interface to respond to
- * common IRC events.
+ * Utility class to provide friendly interface 
+ * to filter a response to common IRC events.
  *
  * @package eva
  */
@@ -28,6 +28,23 @@ class Receiver {
 			' ',
 			'target' =>'([^\s]+)',
 		);
+	
+	}
+
+	/**
+	 * Reset regex to match whatever is specified
+	 * for system events. eg. responding to PING?
+	 */
+	public function raw($pattern, $insensitive = true) {
+		
+		$event = false;
+		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
+		
+		if (preg_match($pattern, $this->_input, $matches)) {
+			$event = new SystemEvent($matches);
+		}
+		
+		return $event;
 	
 	}
 
@@ -73,32 +90,6 @@ class Receiver {
 	}
 
 	/**
-	 * Respond to private message event with a specific text pattern
-	 * @param regex $pattern string
-	 */
-	public function asPrivateMessage($pattern) {
-	
-		$result = $this->match($pattern);
-		
-		if ($event) { // is this is a private message to the bot?
-			$result = $event->isPrivateMessage($this->bot->getNick());
-		}
-		
-		return $result;
-	
-	}
-	
-	/**
-	 * Filter events that are not notices
-	 */
-	public function asNotice() {
-		
-		$this->_regex['command'] = '(NOTICE)';
-		return $this;
-		
-	}
-	
-	/**
 	 * Filter out events not received in a channel, by default accept events 
 	 * on any channel unless a channel is specified
 	 */
@@ -116,10 +107,53 @@ class Receiver {
 		
 	}
 
+	/**
+	 * Filter out events that are not private messages
+	 */
+	public function asPrivateMessage() {
+	
+		$this->_regex['command'] = '(PRIVMSG)';
+		$this->_regex['target'] = '(' . $this->_bot->getNick() . ')';
+		return $this;
+	
+	}
+	
+	/**
+	 * Filter events that are not notices
+	 */
+	public function asNotice() {
+		
+		$this->_regex['command'] = '(NOTICE)';
+		return $this;
+		
+	}
+
 }
 
 /**
- * Encapsulate event response
+ * Encapsulate raw event
+ * Used for system events, no pattern template
+ */
+class SystemEvent {
+
+	public $occured;
+	public $matches = array();
+
+	public function __construct($matches) {
+	
+		$this->occured = time();
+		
+		foreach ($matches as $match) {
+			$this->matches[] = trim($match);
+		}
+	
+	}
+
+}
+
+
+/**
+ * Encapsulate event
  *
  * Example:
  *   :Joe!Bloggs@cable.virginmedia.com PRIVMSG #lobby :!slap Fred
@@ -131,15 +165,13 @@ class Receiver {
  *   $target  = #lobby
  *   $matches = !slap Fred [see match()]
  */
-class Event {
+class Event extends SystemEvent {
 
-	public $occured;
 	public $nick;
 	public $user;
 	public $host;
 	public $command;
 	public $target;
-	public $matches;
 
 	public function __construct($matches) {
 	
@@ -155,22 +187,6 @@ class Event {
 				$this->matches[] = trim($match);
 			}
 		}
-	
-	}
-	
-	/**
-	 * Check if event is a private message
-	 * @param $to nickname (optional)
-	 */
-	public function isPrivateMessage($to = '') {
-	
-		$result = ($this->command === 'PRIVMSG');
-		
-		if ($result && !empty($to)) {
-			$result = ($this->target === $to);
-		}
-		
-		return $result;
 	
 	}
 
