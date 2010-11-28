@@ -53,9 +53,18 @@ class Receiver {
 	 */
 	public function from($nick) {
 		
-		$this->_regex['nick'] = "($nick)";
+		$this->_regex['nick'] = '(' . $nick . ')';
 		return $this;
 		
+	}
+	
+	/**
+	 * Filter events to those from admin users
+	 */
+	public function fromAdmin() {
+	
+		return $this->from(join('|', $this->_bot->cfg['bot.admins']));
+	
 	}
 
 	/**
@@ -63,7 +72,8 @@ class Receiver {
 	 */	
 	public function fromHost($hostname) {
 	
-		$this->_regex['host'] = "($hostname)";
+		$this->_regex['host'] = '(' . $hostname . ')';
+		return $this;
 	
 	}
 

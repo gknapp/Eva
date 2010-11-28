@@ -7,55 +7,21 @@ class EventLoadException extends Exception {
 class Drone {
 
 	public $client;
-	public $storage;
 	public $cfg;
-	public $log;
 	
+	protected $_storage;	
 	protected $_listeners = array();
 	protected $_scheduled = array();
+	protected $_channels = array(); // channels the bot is on
 
 	public function __construct($config) {
 	
 		$this->client = new IrcClient;
-		$this->storage = new FileStore('memory/');
 		$this->cfg = $this->_parseConfig($config);
+		$this->_storage = new FileStore('memory/');
 		
 	}
-	
-	protected function _parseConfig($file) {
-	
-		$data = file($file);
-		$config = array('events' => array());
 		
-		foreach ($data as $line) {
-			// read config settings
-			if (preg_match("/^([a-z\.]+)\s?=\s?([#a-z0-9\.\-,+\!]+)/i", $line, $match)) {
-				list(, $option, $value) = $match;
-				$option = strtolower($option);
-				
-				// explode comma separated values
-				if (strpos($value, ',') !== false) {
-					$value = explode(',', $value);
-				}
-				
-				// server.channels is expected to be an array
-				if ($option == 'server.channels' && !is_array($value)) {
-					$value = array($value);
-				}
-				
-				$config[$option] = $value;
-			}
-			
-			// read events to load
-			if (preg_match("/^Event_[a-z0-9_]+/i", $line, $match)) {
-				$config['events'][] = trim(current($match));
-			}
-		}
-		
-		return $config;
-	
-	}
-	
 	/**
 	 * Prep the receiver class with the input line
 	 * return instance of receiver
@@ -66,12 +32,74 @@ class Drone {
 	
 	}
 	
+	public function store($key = null, $value = null) {
+	
+		if (empty($key) && empty($value)) {
+			return $this;
+		}
+	
+	}
+	
+	public function asPublic($key, $value) {
+	
+		// store in shared file
+	
+	}
+	
 	/**
 	 * Issue a response at a given time
 	 */
 	public function at($time) {
 	
 		return $this->_scheduleAction($time);
+	
+	}
+	
+	/**
+	 * Return list of channels bot is on
+	 */
+	public function getChannels() {
+	
+		return $this->_channels;
+	
+	}
+	
+	/**
+	 * Append list of active channels
+	 */
+	public function addChannel($channel) {
+	
+		$this->_channels[] = $channel;
+	
+	}
+	
+	/**
+	 * Remove channel from list of active channels
+	 */
+	public function removeChannel($channel) {
+	
+		$key = array_search($channel, $this->_channels);
+		
+		if ($key !== false) {
+			unset($this->_channels[$key]);
+		}
+		
+		return ($key !== false) ? true : false;
+	
+	}
+	
+	/**
+	 * Bot on channel?
+	 */
+	public function onChannel($channel) {
+	
+		return in_array($channel, $this->_channels);
+	
+	}
+	
+	public function onMultipleChannels() {
+	
+		return (count($this->_channels) > 1);
 	
 	}
 	
@@ -97,9 +125,13 @@ class Drone {
 				$result = true;
 			}
 		} catch (EventLoadException $e) {
-			$target = empty($e->target) ? $this->cfg['bot.admin'] : $e->target;
+			if (empty($e->target)) {
+				list($target) = $this->cfg['bot.admins'];
+			} else {
+				$target = $e->target;
+			}
+			
 			$this->client->say($e->getMessage(), $target);
-			// $this->log->append($e->getMessage() . " ({$e->target})");
 		}
 		
 		return $result;
@@ -130,8 +162,8 @@ class Drone {
 			
 			// run events that respond to this input
 			foreach ($this->_listeners as $event) {
-				if ($event->respondsTo($input)) {
-					$event->run();
+				if (($e = $event->respondsTo($input))) {
+					$event->run($e);
 				}
 			}
 			
@@ -146,21 +178,43 @@ class Drone {
 	
 	}
 	
-	public function getNick() {
+	protected function _parseConfig($file) {
 	
-		return $this->cfg['bot.nick'];
+		$data = file($file);
+		$config = array('events' => array());
+		
+		foreach ($data as $line) {
+			// read config settings
+			if (preg_match("/^([a-z\.]+)\s?=\s?([#a-z0-9\.\-,+\!]+)/i", $line, $match)) {
+				list(, $option, $value) = $match;
+				$option = strtolower($option);
+				
+				// explode comma separated values
+				if (strpos($value, ',') !== false) {
+					$value = explode(',', $value);
+				}
+				
+				// settings are expected to be an array
+				if (in_array($option, array('server.channels','bot.admins'))) {
+					$value = $this->_makeArray($value);
+				}
+								
+				$config[$option] = $value;
+			}
+			
+			// read events to load
+			if (preg_match("/^Event_[a-z0-9_]+/i", $line, $match)) {
+				$config['events'][] = trim(current($match));
+			}
+		}
+		
+		return $config;
 	
 	}
-
-	public function getPassword() {
 	
-		$pswd = false;
-		
-		if (!empty($this->cfg['bot.admin.pswd'])) {
-			$pswd = $this->cfg['bot.admin.pswd'];
-		}
-	
-		return $pswd;
+	protected function _makeArray($value) {
+			
+		return !is_array($value) ? array($value) : $value;
 	
 	}
 	
@@ -183,7 +237,7 @@ class Drone {
 
 		// Always load these required events
 		$required = array('Event_Pong', 'Event_Join');
-		$events = array_merge($required, $this->cfg['events']);
+		$events = array_unique(array_merge($required, $this->cfg['events']));
 		$loaded = 0;
 		
 		foreach ($events as $event) {
@@ -241,6 +295,15 @@ class ScheduledAction {
 			'name' => 'privateMessage',
 			'args' => array($msg, $target)
 		);	
+	
+	}
+	
+	public function notice($msg, $target) {
+	
+		$this->_call[] = array(
+			'name' => 'notice',
+			'args' => array($msg, $target)
+		);
 	
 	}
 	

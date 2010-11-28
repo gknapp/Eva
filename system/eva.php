@@ -25,9 +25,9 @@ class Eva extends Drone {
 	
 	}
 	
-	public function getAdmins() {
+	public function isAdmin($nick) {
 	
-		return $this->cfg['bot.admins'];
+		return in_array($nick, $this->cfg['bot.admins']);
 	
 	}
 	
@@ -42,6 +42,9 @@ class Eva extends Drone {
 	
 	}
 	
+	/**
+	 * For code clarity, alias for say()
+	 */
 	public function privateMessage($msg, $target) {
 	
 		$this->client->say($msg, $target);
@@ -56,13 +59,19 @@ class Eva extends Drone {
 	
 	public function join($channel) {
 	
-		$this->client->join($channel);
+		if (!$this->onChannel($channel)) {
+			$this->client->join($channel);
+			$this->addChannel($channel);
+		}
 	
 	}
 	
 	public function part($channel) {
 	
-		$this->client->part($channel);
+		if ($this->onChannel($channel)) {
+			$this->client->part($channel);
+			$this->removeChannel($channel);
+		}
 	
 	}
 	
