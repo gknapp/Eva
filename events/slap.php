@@ -22,35 +22,55 @@ class Event_Slap extends Event_Base {
 	 */
 	public function run($event) {
 	
-		$nickname = $event->matches[1];
+		$nickname = $this->_getVictim($event);
 		$item = 'frying pan';
 		
-		if (!empty($event->matches[2])) {
-			$item = $event->matches[2];
-			$prefix = 'a ';
-			
-			// small bit of analysis on the item
-			list($word, $rest) = explode(' ', $item, 2);
-			$word = strtolower($word);
-			
-			// strip 'a' prefix
-			if ($word == 'with' || $word == 'my' || $word = 'a') {
-				$prefix = '';
-			}
-			
-			if ($word != 'with') {
-				$rest = $item;
-			}
-			
-			// substitute 'my' with author's nick
-			$rest = str_replace('my ', $event->nick . "'s ", $rest);
-			$item = $prefix . $rest;
+		if ($this->_hasItemSpecified($event)) {
+			$item = $this->_getItem($event);
+			$item = $this->_analyseGrammar($item);
+		} else {
+			$item = 'a ' . $item;
 		}
 		
 		$this->bot->action(
 			"slaps $nickname around with $item", $event->target
 		);
 	
+	}
+	
+	private function _getVictim($event) {
+		return $event->matches[1];
+	}
+	
+	private function _hasItemSpecified($event) {
+		return !empty($event->matches[2]);
+	}
+	
+	private function _getItem($event) {
+		return $event->matches[2];
+	}
+	
+	private function _analyseGrammar($item) {
+		$prefix = 'a ';
+		
+		list($word, $rest) = explode(' ', $item, 2);
+		$word = strtolower($word);
+		
+		// strip 'a' prefix
+		if (in_array($word, array('with','my','a','an'))) {
+			$prefix = '';
+		}
+		
+		
+		if ($word != 'with') {
+			$rest = $item;
+		}
+		
+		// substitute 'my' with author's nick
+		$rest = str_replace('my ', $event->nick . "'s ", $rest);
+		$item = $prefix . $rest;
+		
+		return $item;
 	}
 
 }
