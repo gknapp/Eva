@@ -14,12 +14,10 @@ class Drone {
 	protected $_scheduled = array();
 	protected $_channels = array(); // channels the bot is on
 
-	public function __construct($config) {
-	
-		$this->client = new IrcClient;
+	public function __construct($config, $client) {
+		$this->client = $client;
 		$this->cfg = $this->_parseConfig($config);
-		$this->_storage = new FileStore('memory/');
-		
+		//$this->_storage = new FileStore('memory/');
 	}
 		
 	/**
@@ -27,57 +25,44 @@ class Drone {
 	 * return instance of receiver
 	 */
 	public function receives($event) {
-	
 		return new Receiver($this, $event);
-	
 	}
 	
 	public function store($key = null, $value = null) {
-	
 		if (empty($key) && empty($value)) {
 			return $this;
 		}
-	
 	}
 	
 	public function asPublic($key, $value) {
-	
 		// store in shared file
-	
 	}
 	
 	/**
 	 * Issue a response at a given time
 	 */
 	public function at($time) {
-	
 		return $this->_scheduleAction($time);
-	
 	}
 	
 	/**
 	 * Return list of channels bot is on
 	 */
 	public function getChannels() {
-	
 		return $this->_channels;
-	
 	}
 	
 	/**
 	 * Append list of active channels
 	 */
 	public function addChannel($channel) {
-	
 		$this->_channels[] = $channel;
-	
 	}
 	
 	/**
 	 * Remove channel from list of active channels
 	 */
 	public function removeChannel($channel) {
-	
 		$key = array_search($channel, $this->_channels);
 		
 		if ($key !== false) {
@@ -85,26 +70,20 @@ class Drone {
 		}
 		
 		return ($key !== false) ? true : false;
-	
 	}
 	
 	/**
 	 * Bot on channel?
 	 */
 	public function onChannel($channel) {
-	
 		return in_array($channel, $this->_channels);
-	
 	}
 	
 	public function onMultipleChannels() {
-	
 		return (count($this->_channels) > 1);
-	
 	}
 	
 	public function isListenerLoaded($listener) {
-	
 		foreach ($this->_listeners as $event) {
 			if ($listener instanceof $event) {
 				return true;
@@ -112,11 +91,9 @@ class Drone {
 		}
 		
 		return false;
-	
 	}
 	
 	public function addListener($listener) {
-	
 		$result = false;
 	
 		try {
@@ -135,11 +112,9 @@ class Drone {
 		}
 		
 		return $result;
-	
 	}
 	
 	public function removeListener($listener) {
-	
 		foreach ($this->_listeners as $i => $event) {
 			if (strtolower(get_class($event)) == strtolower($listener)) {
 				unset($this->_listeners[$i]);
@@ -148,11 +123,9 @@ class Drone {
 		}
 		
 		return false;
-	
 	}
 	
 	public function run() {
-	
 		$this->client->connect($this->cfg);
 		$this->_loadEvents();
 	
@@ -175,7 +148,6 @@ class Drone {
 				}
 			}
 		}
-	
 	}
 	
 	protected function _parseConfig($file) {

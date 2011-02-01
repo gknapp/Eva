@@ -42,5 +42,6 @@ function __autoload($className) {
 
 }
 
-$eva = new Eva('eva.cfg');
+$client = new IrcClient(new IrcConnection);
+$eva = new Eva('eva.cfg', $client);
 $eva->run();
