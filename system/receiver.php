@@ -41,7 +41,7 @@ class Receiver {
 		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
 		
 		if (preg_match($pattern, $this->_input, $matches)) {
-			$event = new SystemEvent($matches);
+			$event = new Event($matches);
 		}
 		
 		return $event;
@@ -92,7 +92,7 @@ class Receiver {
 		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
 		
 		if (preg_match($pattern, $this->_input, $matches)) {
-			$event = new Event($matches);
+			$event = new UserEvent($matches);
 		}
 		
 		return $event;
@@ -144,7 +144,7 @@ class Receiver {
  * Encapsulate raw event
  * Used for system events, no pattern template
  */
-class SystemEvent {
+class Event {
 
 	public $occured;
 	public $matches = array();
@@ -175,7 +175,7 @@ class SystemEvent {
  *   $target  = #lobby
  *   $matches = !slap Fred [see match()]
  */
-class Event extends SystemEvent {
+class UserEvent extends Event {
 
 	public $nick;
 	public $user;
