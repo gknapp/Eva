@@ -27,7 +27,38 @@ class Drone {
 	public function receives($event) {
 		return new Receiver($this, $event);
 	}
+
+	public function privateMessage($msg, $target) {
+		$this->client->say($msg, $target);
+	}
 	
+	public function action($action, $channel) {
+		$this->client->action($action, $channel);
+	}
+	
+	public function join($channel) {
+		if (!$this->onChannel($channel)) {
+			$this->client->join($channel);
+			$this->addChannel($channel);
+		}
+	}
+	
+	public function part($channel) {
+		if ($this->onChannel($channel)) {
+			$this->client->part($channel);
+			$this->removeChannel($channel);
+		}
+	}
+	
+	public function notice($msg, $target) {
+		$this->client->notice($msg, $target);
+	}
+	
+	public function quit($msg = 'kthxbye') {
+		$this->client->quit($msg);
+	}
+	
+	/*
 	public function store($key = null, $value = null) {
 		if (empty($key) && empty($value)) {
 			return $this;
@@ -36,18 +67,12 @@ class Drone {
 	
 	public function asPublic($key, $value) {
 		// store in shared file
-	}
+	}*/
 	
-	/**
-	 * Issue a response at a given time
-	 */
 	public function at($time) {
 		return $this->_scheduleAction($time);
 	}
 	
-	/**
-	 * Return list of channels bot is on
-	 */
 	public function getChannels() {
 		return $this->_channels;
 	}
@@ -55,14 +80,14 @@ class Drone {
 	/**
 	 * Append list of active channels
 	 */
-	public function addChannel($channel) {
+	protected function addChannel($channel) {
 		$this->_channels[] = $channel;
 	}
 	
 	/**
 	 * Remove channel from list of active channels
 	 */
-	public function removeChannel($channel) {
+	protected function removeChannel($channel) {
 		$key = array_search($channel, $this->_channels);
 		
 		if ($key !== false) {
@@ -72,10 +97,7 @@ class Drone {
 		return ($key !== false) ? true : false;
 	}
 	
-	/**
-	 * Bot on channel?
-	 */
-	public function onChannel($channel) {
+	protected function onChannel($channel) {
 		return in_array($channel, $this->_channels);
 	}
 	
@@ -83,7 +105,7 @@ class Drone {
 		return (count($this->_channels) > 1);
 	}
 	
-	public function isListenerLoaded($listener) {
+	protected function isListenerLoaded($listener) {
 		foreach ($this->_listeners as $event) {
 			if ($listener instanceof $event) {
 				return true;
@@ -93,7 +115,7 @@ class Drone {
 		return false;
 	}
 	
-	public function addListener($listener) {
+	protected function addListener($listener) {
 		$result = false;
 	
 		try {
@@ -114,7 +136,7 @@ class Drone {
 		return $result;
 	}
 	
-	public function removeListener($listener) {
+	protected function removeListener($listener) {
 		foreach ($this->_listeners as $i => $event) {
 			if (strtolower(get_class($event)) == strtolower($listener)) {
 				unset($this->_listeners[$i]);

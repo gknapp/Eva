@@ -33,36 +33,5 @@ class Eva extends Drone {
 	
 		$this->client->say($msg, $target);
 	}
-	
-	// For code clarity, alias for say()
-	public function privateMessage($msg, $target) {
-		$this->client->say($msg, $target);
-	}
-	
-	public function action($action, $channel) {
-		$this->client->action($action, $channel);
-	}
-	
-	public function join($channel) {
-		if (!$this->onChannel($channel)) {
-			$this->client->join($channel);
-			$this->addChannel($channel);
-		}
-	}
-	
-	public function part($channel) {
-		if ($this->onChannel($channel)) {
-			$this->client->part($channel);
-			$this->removeChannel($channel);
-		}
-	}
-	
-	public function notice($msg, $target) {
-		$this->client->notice($msg, $target);
-	}
-	
-	public function quit($msg = 'kthxbye') {
-		$this->client->quit($msg);
-	}
 
 }
