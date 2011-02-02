@@ -14,28 +14,26 @@ class EventJoinTest extends EventTest {
 			':irc.server.com 376 Eva :End of /MOTD command.'
 		);
 		$this->assertInstanceOf('Event', $event);
-		$this->expectOutputString("JOIN #testing");
 		$this->listener->run($event);
+		$this->assertEquals("JOIN #testing", $this->connection->readResponse());
 	}
 	
 	public function testJoinChannelOnAdminPrivateMessage() {
 		$event = $this->listener->respondsTo(
-			':Greg!Greg@host.com PRIVMSG eva :!join #test'
+			':Greg!Greg@host.com PRIVMSG Eva :!join #test'
 		);
 		$this->assertInstanceOf('UserEvent', $event);
-		
-		$this->expectOutputString("JOIN #test");
 		$this->listener->run($event);
+		$this->assertEquals("JOIN #test", $this->connection->readResponse());
 	}
-	
+
 	public function testJoinChannelOnAdminChannelCommand() {
 		$event = $this->listener->respondsTo(
-			':Greg!Greg@host.com PRIVMSG #test :!join #test'
+			':Greg!Greg@host.com PRIVMSG #test :!join #test2'
 		);
-		$this->assertInstanceOf('UserEvent', $event);
-		
-		$this->expectOutputString("JOIN #test");
+		$this->assertInstanceOf('UserEvent', $event);		
 		$this->listener->run($event);
+		$this->assertEquals("JOIN #test2", $this->connection->readResponse());
 	}
 	
 	public function testIgnoreJoinCommandFromUser() {
@@ -49,14 +47,15 @@ class EventJoinTest extends EventTest {
 		$event = $this->listener->respondsTo(
 			':irc.server.com 376 Eva :End of /MOTD command.'
 		);
-		$this->expectOutputString("JOIN #testing");
 		$this->listener->run($event);
+		$this->assertEquals("JOIN #testing", $this->connection->readResponse());
 
+		$this->connection->clearResponse();
 		$event = $this->listener->respondsTo(
-			':Greg!Greg@host.com PRIVMSG #testing :!join #testing'
+			':Greg!Greg@host.com PRIVMSG #test :!join #testing'
 		);
-		$this->expectOutputString("");
 		$this->listener->run($event);
+		$this->assertEquals("", $this->connection->readResponse());
 	}
 
 }

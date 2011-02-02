@@ -2,6 +2,8 @@
 
 class MockConnection {
 
+	private $_response;
+
 	public function connect($server, $port) {
 		return true;
 	}
@@ -11,13 +13,20 @@ class MockConnection {
 	}
 	
 	public function send($cmd) {
-		echo $cmd;
+		$this->_response = $cmd;
 		return 1;
 	}
 	
 	public function readLine() {}
-	
 	public function close() {}
+		
+	public function readResponse() {
+		return $this->_response;
+	}
+	
+	public function clearResponse() {
+		$this->_response = '';
+	}
 
 }
 

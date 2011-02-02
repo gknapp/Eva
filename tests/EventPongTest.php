@@ -15,8 +15,11 @@ class EventPongTest extends EventTest {
 		);
 		$this->assertInstanceOf('Event', $event);
 		
-		$this->expectOutputString("PONG :irc.server.com");
 		$this->listener->run($event);
+		$this->assertEquals(
+			"PONG :irc.server.com",
+			$this->connection->readResponse()
+		);
 	}
 
 }
