@@ -13,7 +13,6 @@ class Receiver {
 	protected $_regex;
 
 	public function __construct($bot, $input) {
-	
 		$this->_bot = $bot;
 		$this->_input = $input;
 		
@@ -28,7 +27,6 @@ class Receiver {
 			' ',
 			'target' =>'([^\s]+)',
 		);
-	
 	}
 
 	/**
@@ -36,7 +34,6 @@ class Receiver {
 	 * for system events. eg. responding to PING?
 	 */
 	public function raw($pattern, $insensitive = true) {
-		
 		$event = false;
 		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
 		
@@ -45,36 +42,29 @@ class Receiver {
 		}
 		
 		return $event;
-	
 	}
 
 	/**
 	 * Filters events to those from $nick
 	 */
 	public function from($nick) {
-		
 		$this->_regex['nick'] = '(' . $nick . ')';
 		return $this;
-		
 	}
 	
 	/**
 	 * Filter events to those from admin users
 	 */
 	public function fromAdmin() {
-	
 		return $this->from(join('|', $this->_bot->cfg['bot.admins']));
-	
 	}
 
 	/**
 	 * Filters events to those from $hostname
 	 */	
 	public function fromHost($hostname) {
-	
 		$this->_regex['host'] = '(' . $hostname . ')';
 		return $this;
-	
 	}
 
 	/**
@@ -86,7 +76,6 @@ class Receiver {
 	 * @param $pattern regex string
 	 */
 	public function match($pattern, $insensitive = true) {
-	
 		$event = false;
 		$pattern = ':' . join('', $this->_regex) . ' :' . $pattern;
 		$pattern = $insensitive ? "/$pattern/i" : "/$pattern/";
@@ -94,9 +83,8 @@ class Receiver {
 		if (preg_match($pattern, $this->_input, $matches)) {
 			$event = new UserEvent($matches);
 		}
-		
+				
 		return $event;
-	
 	}
 
 	/**
@@ -104,7 +92,6 @@ class Receiver {
 	 * on any channel unless a channel is specified
 	 */
 	public function inChannel($channel = '*') {
-		
 		$this->_regex['command'] = '(PRIVMSG)';
 			
 		if (empty($channel) || $channel == '*') { // any channel	
@@ -114,28 +101,23 @@ class Receiver {
 		}
 		
 		return $this;
-		
 	}
 
 	/**
 	 * Filter out events that are not private messages
 	 */
 	public function asPrivateMessage() {
-	
 		$this->_regex['command'] = '(PRIVMSG)';
 		$this->_regex['target'] = '(' . $this->_bot->getNick() . ')';
 		return $this;
-	
 	}
 	
 	/**
 	 * Filter events that are not notices
 	 */
 	public function asNotice() {
-		
 		$this->_regex['command'] = '(NOTICE)';
 		return $this;
-		
 	}
 
 }
@@ -150,13 +132,11 @@ class Event {
 	public $matches = array();
 
 	public function __construct($matches) {
-	
 		$this->occured = time();
 		
 		foreach ($matches as $match) {
 			$this->matches[] = trim($match);
 		}
-	
 	}
 
 }
@@ -184,7 +164,6 @@ class UserEvent extends Event {
 	public $target;
 
 	public function __construct($matches) {
-	
 		$this->occured = time();
 		$this->matches = array(array_shift($matches));
 		
@@ -197,7 +176,6 @@ class UserEvent extends Event {
 				$this->matches[] = trim($match);
 			}
 		}
-	
 	}
 
 }
