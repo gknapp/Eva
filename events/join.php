@@ -5,36 +5,33 @@
 
 class Event_Join extends Event_Base {
 
-	protected $_endMotd;
+	private $motd = false;
 
-	public function respondsTo($event) {
-		
+	public function respondsTo($input) {
 		// Once we've received MOTD end, request to join channels
-		$this->_endMotd = $this->bot->receives($event)->raw(
-			':[^\s]+ 376 ', false
-		);
+		$event = $this->bot->receives($input)->raw(':[^\s]+ 376 ', false);
 		
-		if (!$this->_endMotd) {
+		if ($event) {
+			$this->motd = true;
+		} else {
 			// If not MOTD check if it's a !join request 
-			return $this->bot->receives($event)->fromAdmin()->match(
+			$event = $this->bot->receives($input)->fromAdmin()->match(
 				'!join\s+(#[a-z0-9-]+)'
 			);
 		}
 		
-		return $this->_endMotd;
-	
+		return $event;
 	}
 	
 	public function run($event) {
-	
-		if ($this->_endMotd) {
+		if ($this->motd) {
 			foreach ($this->bot->cfg['server.channels'] as $channel) {
 				$this->bot->join($channel);
 			}
-		} elseif (isset($event->matches[1])) {
+			$this->motd = null;
+		} elseif (!empty($event->matches[1])) {
 			$this->bot->join($event->matches[1]);
 		}
-	
 	}
 
 }
