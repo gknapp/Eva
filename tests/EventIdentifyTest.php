@@ -25,7 +25,7 @@ class EventIdentifyTest extends EventTest {
 	
 	public function testOnlyRespondToNickService() {
 		$event = $this->listener->respondsTo(
-			':Attacker!services@torn.com NOTICE Eva ' .
+			':Attacker!services@server.com NOTICE Eva ' .
 			':This nickname is registered and protected.'
 		);
 		$this->assertEquals(false, $event);
