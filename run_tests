@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cd tests
-phpunit --testdox AllTests AllTests.php
